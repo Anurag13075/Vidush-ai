@@ -17,12 +17,13 @@ import {
   Star,
   Search,
 } from "lucide-react";
-import planeAfter from "@/assets/cinematic-plane.jpg";
-import planeBefore from "@/assets/plain-plane.jpg";
-import oceanImg from "@/assets/ocean-cinematic.jpg";
 
-import romeImg from "@/assets/rome-cinematic.jpg";
-import tokyoImg from "@/assets/tokyo-cinematic.jpg";
+const planeAfter = "https://placehold.co/800x450/1a1330/ffffff?text=cinematic-plane";
+const planeBefore = "https://placehold.co/800x450/e5e7eb/374151?text=plain-plane";
+const oceanImg = "https://placehold.co/800x450/0f172a/38bdf8?text=ocean-cinematic";
+const egyptImg = "https://placehold.co/800x450/1c1003/fbbf24?text=egypt-cinematic";
+const romeImg = "https://placehold.co/800x450/1a0a0a/f87171?text=rome-cinematic";
+const tokyoImg = "https://placehold.co/800x450/0a0a1a/a78bfa?text=tokyo-cinematic";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -571,11 +572,10 @@ function Pricing() {
           {tiers.map((t) => (
             <div
               key={t.name}
-              className={`relative rounded-3xl p-8 border ${
-                t.highlight
+              className={`relative rounded-3xl p-8 border ${t.highlight
                   ? "bg-[var(--ink)] text-white border-[var(--ink)] shadow-[0_40px_100px_-30px_var(--accent-glow)]"
                   : "bg-white border-[var(--border)]"
-              }`}
+                }`}
             >
               {t.highlight && (
                 <span className="absolute -top-3 left-8 px-3 py-1 rounded-full bg-[var(--accent)] text-white text-[11px] font-medium">
@@ -591,11 +591,10 @@ function Pricing() {
                 {t.desc}
               </p>
               <button
-                className={`w-full py-2.5 rounded-xl font-medium text-[14px] mb-6 transition-colors ${
-                  t.highlight
+                className={`w-full py-2.5 rounded-xl font-medium text-[14px] mb-6 transition-colors ${t.highlight
                     ? "bg-white text-[var(--ink)] hover:bg-white/90"
                     : "bg-[var(--ink)] text-white hover:bg-black"
-                }`}
+                  }`}
               >
                 Get started
               </button>
@@ -661,17 +660,15 @@ function Faq() {
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-[17px] font-medium">{f.q}</span>
                   <span
-                    className={`h-8 w-8 rounded-full border border-[var(--border)] flex items-center justify-center shrink-0 transition-all ${
-                      isOpen ? "bg-[var(--accent)] border-[var(--accent)] text-white rotate-45" : "text-[var(--text-secondary)]"
-                    }`}
+                    className={`h-8 w-8 rounded-full border border-[var(--border)] flex items-center justify-center shrink-0 transition-all ${isOpen ? "bg-[var(--accent)] border-[var(--accent)] text-white rotate-45" : "text-[var(--text-secondary)]"
+                      }`}
                   >
                     <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
                   </span>
                 </div>
                 <div
-                  className={`grid transition-all duration-300 ease-out ${
-                    isOpen ? "grid-rows-[1fr] opacity-100 mt-3" : "grid-rows-[0fr] opacity-0"
-                  }`}
+                  className={`grid transition-all duration-300 ease-out ${isOpen ? "grid-rows-[1fr] opacity-100 mt-3" : "grid-rows-[0fr] opacity-0"
+                    }`}
                 >
                   <div className="overflow-hidden">
                     <p className="text-[15px] text-[var(--text-secondary)] leading-relaxed pr-12">{f.a}</p>
