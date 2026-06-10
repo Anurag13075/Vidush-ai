@@ -20,7 +20,7 @@ import {
 import planeAfter from "@/assets/cinematic-plane.jpg";
 import planeBefore from "@/assets/plain-plane.jpg";
 import oceanImg from "@/assets/ocean-cinematic.jpg";
-import egyptImg from "@/assets/egypt-cinematic.jpg";
+
 import romeImg from "@/assets/rome-cinematic.jpg";
 import tokyoImg from "@/assets/tokyo-cinematic.jpg";
 
