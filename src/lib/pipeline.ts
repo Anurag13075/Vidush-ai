@@ -1,4 +1,5 @@
-// Real API client
+import { supabase } from "./supabase";
+
 export type Stage =
   | "queued"
   | "researching"
@@ -40,6 +41,29 @@ export interface Clip {
 export interface RenderStep {
   label: string;
   done: boolean;
+}
+
+export interface VideoRow {
+  id: string;
+  title: string;
+  voice: string;
+  length: string;
+  theme?: string;
+  background?: string;
+  mode?: string;
+  stage: string;
+  progress: number;
+  message: string;
+  script: Record<string, unknown> | null;
+  clips: Clip[] | null;
+  render_steps: RenderStep[] | null;
+  render_progress: number;
+  video_url: string | null;
+  thumbnail_url: string | null;
+  duration_seconds: number | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Job {
@@ -96,28 +120,26 @@ function normalizeScript(raw: Record<string, unknown> | null): Script | undefine
   };
 }
 
-export function normalizeApiResponse(data: Record<string, unknown>): Job {
+export function normalizeVideoRow(data: VideoRow): Job {
   return {
-    id: String(data.id),
-    topic: String(data.title || data.topic || ""),
-    voice: String(data.voice || "presenter_female"),
-    length: String(data.length || "medium"),
-    theme: String(data.theme || "modern"),
-    background: String(data.background || "gradient_dark"),
-    mode: String(data.mode || "auto"),
+    id: data.id,
+    topic: data.title,
+    voice: data.voice || "presenter_female",
+    length: data.length || "medium",
+    theme: data.theme || "modern",
+    background: data.background || "gradient_dark",
+    mode: data.mode || "auto",
     stage: (data.stage as Stage) || "queued",
-    progress: Number(data.progress) || 0,
-    message: String(data.message || ""),
-    script: normalizeScript((data.script as Record<string, unknown>) || null),
-    clips: Array.isArray(data.clips) ? (data.clips as Clip[]) : undefined,
-    renderSteps: Array.isArray(data.renderSteps)
-      ? (data.renderSteps as RenderStep[])
-      : undefined,
-    renderProgress: Number(data.renderProgress) || 0,
-    videoUrl: (data.videoUrl as string) || undefined,
-    thumbnailUrl: (data.thumbnailUrl as string) || undefined,
-    durationSec: (data.durationSeconds as number) || undefined,
-    createdAt: data.createdAt ? new Date(data.createdAt as string).getTime() : Date.now(),
+    progress: data.progress || 0,
+    message: data.message || "",
+    script: normalizeScript(data.script),
+    clips: data.clips || undefined,
+    renderSteps: data.render_steps || undefined,
+    renderProgress: data.render_progress || 0,
+    videoUrl: data.video_url || undefined,
+    thumbnailUrl: data.thumbnail_url || undefined,
+    durationSec: data.duration_seconds || undefined,
+    createdAt: data.created_at ? new Date(data.created_at).getTime() : Date.now(),
   };
 }
 
@@ -129,33 +151,57 @@ export async function createJob(input: {
   background?: string;
   mode?: string;
 }): Promise<string> {
-  const res = await fetch("/api/videos", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: input.topic,
-      voice: input.voice,
-      length: input.length,
-      theme: input.theme || "modern",
-      background: input.background || "gradient_dark",
-      mode: input.mode || "auto",
-    }),
+  const id = crypto.randomUUID();
+
+  const { error } = await supabase.from("videos").insert({
+    id,
+    title: input.topic.trim(),
+    voice: input.voice || "presenter_female",
+    length: input.length || "medium",
+    theme: input.theme || "modern",
+    background: input.background || "gradient_dark",
+    mode: input.mode || "auto",
+    stage: "queued",
+    message: "Initializing pipeline...",
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error || "Failed to create video");
+
+  if (error) {
+    throw new Error(error.message || "Failed to create video");
   }
-  const data = await res.json() as { id: string };
-  return data.id;
+
+  return id;
 }
 
 export async function fetchJob(id: string): Promise<Job | null> {
-  try {
-    const res = await fetch(`/api/videos/${id}`);
-    if (!res.ok) return null;
-    const data = await res.json() as Record<string, unknown>;
-    return normalizeApiResponse(data);
-  } catch {
-    return null;
-  }
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+  return normalizeVideoRow(data as VideoRow);
+}
+
+export async function fetchAllJobs(): Promise<Job[]> {
+  const { data, error } = await supabase
+    .from("videos")
+    .select("id, title, stage, progress, message, video_url, thumbnail_url, duration_seconds, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error || !data) return [];
+  return data.map((row) => ({
+    id: row.id,
+    topic: row.title,
+    stage: row.stage as Stage,
+    progress: row.progress || 0,
+    message: row.message || "",
+    videoUrl: row.video_url || undefined,
+    thumbnailUrl: row.thumbnail_url || undefined,
+    durationSec: row.duration_seconds || undefined,
+    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    voice: "presenter_female",
+    length: "medium",
+  }));
 }
